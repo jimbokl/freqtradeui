@@ -1,0 +1,259 @@
+{
+  "graph": {
+    "layout_direction": 0,
+    "acyclic": true,
+    "pipe_collision": false,
+    "pipe_slicing": true
+  },
+  "nodes": {
+    "market_data_1": {
+      "name": "Market Data",
+      "color": [70, 130, 180],
+      "border_color": [50, 110, 160],
+      "text_color": [255, 255, 255],
+      "type_": "frequi.nodes.MarketDataNode.MarketDataNode",
+      "selected": false,
+      "disabled": false,
+      "visible": true,
+      "width": 120,
+      "height": 80,
+      "pos": [100, 100],
+      "port_deletion_allowed": false,
+      "subgraph_session": {},
+      "inputs": {},
+      "outputs": {
+        "candles": {
+          "type_": "out",
+          "multi_connection": true,
+          "connected_ports": [
+            ["ema_fast", "candles"],
+            ["ema_slow", "candles"]
+          ]
+        }
+      },
+      "parameters": {
+        "pair": "BTC/USDT",
+        "timeframe": "1h",
+        "lookback": 500
+      }
+    },
+    "ema_fast": {
+      "name": "EMA Fast",
+      "color": [255, 165, 0],
+      "border_color": [235, 145, 0],
+      "text_color": [255, 255, 255],
+      "type_": "frequi.nodes.IndicatorNode.IndicatorNode",
+      "selected": false,
+      "disabled": false,
+      "visible": true,
+      "width": 120,
+      "height": 80,
+      "pos": [300, 50],
+      "port_deletion_allowed": false,
+      "subgraph_session": {},
+      "inputs": {
+        "candles": {
+          "type_": "in",
+          "multi_connection": false,
+          "connected_ports": [
+            ["market_data_1", "candles"]
+          ]
+        }
+      },
+      "outputs": {
+        "values": {
+          "type_": "out",
+          "multi_connection": true,
+          "connected_ports": [
+            ["crossover_logic", "A"]
+          ]
+        }
+      },
+      "parameters": {
+        "indicator_type": "EMA",
+        "period": 12,
+        "source": "close"
+      }
+    },
+    "ema_slow": {
+      "name": "EMA Slow",
+      "color": [255, 165, 0],
+      "border_color": [235, 145, 0],
+      "text_color": [255, 255, 255],
+      "type_": "frequi.nodes.IndicatorNode.IndicatorNode",
+      "selected": false,
+      "disabled": false,
+      "visible": true,
+      "width": 120,
+      "height": 80,
+      "pos": [300, 150],
+      "port_deletion_allowed": false,
+      "subgraph_session": {},
+      "inputs": {
+        "candles": {
+          "type_": "in",
+          "multi_connection": false,
+          "connected_ports": [
+            ["market_data_1", "candles"]
+          ]
+        }
+      },
+      "outputs": {
+        "values": {
+          "type_": "out",
+          "multi_connection": true,
+          "connected_ports": [
+            ["crossover_logic", "B"]
+          ]
+        }
+      },
+      "parameters": {
+        "indicator_type": "EMA",
+        "period": 26,
+        "source": "close"
+      }
+    },
+    "crossover_logic": {
+      "name": "EMA Crossover",
+      "color": [128, 0, 128],
+      "border_color": [108, 0, 108],
+      "text_color": [255, 255, 255],
+      "type_": "frequi.nodes.MathNode.MathNode",
+      "selected": false,
+      "disabled": false,
+      "visible": true,
+      "width": 120,
+      "height": 80,
+      "pos": [500, 100],
+      "port_deletion_allowed": false,
+      "subgraph_session": {},
+      "inputs": {
+        "A": {
+          "type_": "in",
+          "multi_connection": false,
+          "connected_ports": [
+            ["ema_fast", "values"]
+          ]
+        },
+        "B": {
+          "type_": "in",
+          "multi_connection": false,
+          "connected_ports": [
+            ["ema_slow", "values"]
+          ]
+        }
+      },
+      "outputs": {
+        "result": {
+          "type_": "out",
+          "multi_connection": true,
+          "connected_ports": [
+            ["entry_signal", "signal"],
+            ["exit_signal", "signal"]
+          ]
+        }
+      },
+      "parameters": {
+        "operation": "subtract",
+        "constant": 0.0
+      }
+    },
+    "entry_signal": {
+      "name": "Long Entry",
+      "color": [0, 255, 0],
+      "border_color": [0, 235, 0],
+      "text_color": [255, 255, 255],
+      "type_": "frequi.nodes.EnterNode.EnterNode",
+      "selected": false,
+      "disabled": false,
+      "visible": true,
+      "width": 120,
+      "height": 80,
+      "pos": [700, 50],
+      "port_deletion_allowed": false,
+      "subgraph_session": {},
+      "inputs": {
+        "signal": {
+          "type_": "in",
+          "multi_connection": false,
+          "connected_ports": [
+            ["crossover_logic", "result"]
+          ]
+        }
+      },
+      "outputs": {
+        "entry": {
+          "type_": "out",
+          "multi_connection": true,
+          "connected_ports": []
+        }
+      },
+      "parameters": {
+        "side": "long",
+        "position_size": 1.0
+      }
+    },
+    "exit_signal": {
+      "name": "Long Exit",
+      "color": [255, 0, 0],
+      "border_color": [235, 0, 0],
+      "text_color": [255, 255, 255],
+      "type_": "frequi.nodes.ExitNode.ExitNode",
+      "selected": false,
+      "disabled": false,
+      "visible": true,
+      "width": 120,
+      "height": 80,
+      "pos": [700, 150],
+      "port_deletion_allowed": false,
+      "subgraph_session": {},
+      "inputs": {
+        "signal": {
+          "type_": "in",
+          "multi_connection": false,
+          "connected_ports": [
+            ["crossover_logic", "result"]
+          ]
+        }
+      },
+      "outputs": {
+        "exit": {
+          "type_": "out",
+          "multi_connection": true,
+          "connected_ports": []
+        }
+      },
+      "parameters": {
+        "side": "long",
+        "stop_loss": 5.0,
+        "take_profit": 10.0
+      }
+    }
+  },
+  "connections": [
+    {
+      "in": ["ema_fast", "candles"],
+      "out": ["market_data_1", "candles"]
+    },
+    {
+      "in": ["ema_slow", "candles"],
+      "out": ["market_data_1", "candles"]
+    },
+    {
+      "in": ["crossover_logic", "A"],
+      "out": ["ema_fast", "values"]
+    },
+    {
+      "in": ["crossover_logic", "B"],
+      "out": ["ema_slow", "values"]
+    },
+    {
+      "in": ["entry_signal", "signal"],
+      "out": ["crossover_logic", "result"]
+    },
+    {
+      "in": ["exit_signal", "signal"],
+      "out": ["crossover_logic", "result"]
+    }
+  ]
+} 

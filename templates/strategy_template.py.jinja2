@@ -1,0 +1,116 @@
+# pragma pylint: disable=missing-docstring, invalid-name, pointless-string-statement
+# flake8: noqa: F401
+# isort: skip_file
+# --- Do not remove these libs ---
+import numpy as np
+import pandas as pd
+from pandas import DataFrame
+from datetime import datetime
+from typing import Optional, Union
+
+from freqtrade.strategy import (BooleanParameter, CategoricalParameter, DecimalParameter,
+                                IntParameter, IStrategy, merge_informative_pair)
+
+# --------------------------------
+# Add your lib to import here
+import talib.abstract as ta
+import freqtrade.vendor.qtpylib.indicators as qtpylib
+
+# Generated strategy from RDP visual builder
+# Generated on: {{ timestamp }}
+
+{% for import in imports %}
+{{ import }}
+{% endfor %}
+
+class {{ strategy_name }}(IStrategy):
+    """
+    Generated strategy from visual strategy builder
+    """
+    
+    # Strategy interface version
+    INTERFACE_VERSION = 3
+    
+    # Basic strategy settings
+    timeframe = '1h'
+    
+    # ROI table
+    minimal_roi = {
+        "0": 0.10,
+        "40": 0.05,
+        "100": 0.01,
+        "180": 0
+    }
+    
+    # Stoploss
+    stoploss = -0.10
+    
+    # Trailing stop
+    trailing_stop = False
+    
+    # Hyperopt parameters
+{% for param in hyperopt_params %}
+    {{ param }}
+{% endfor %}
+    
+    def populate_indicators(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
+        """
+        Generate indicators from visual nodes
+        """
+        
+{% for indicator in indicators %}
+        # {{ indicator.comment if indicator.comment else 'Generated indicator' }}
+        {{ indicator }}
+        
+{% endfor %}
+        
+        return dataframe
+    
+    def populate_entry_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
+        """
+        Generate entry signals from visual nodes
+        """
+        
+{% for entry in entry_signals %}
+        # {{ entry.comment if entry.comment else 'Generated entry condition' }}
+        {{ entry }}
+        
+{% endfor %}
+        
+        return dataframe
+    
+    def populate_exit_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
+        """
+        Generate exit signals from visual nodes
+        """
+        
+{% for exit in exit_signals %}
+        # {{ exit.comment if exit.comment else 'Generated exit condition' }}
+        {{ exit }}
+        
+{% endfor %}
+        
+        return dataframe
+    
+    def populate_indicators_1h(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
+        """
+        Higher timeframe indicators (if needed)
+        """
+        return dataframe
+    
+{% if plots %}
+    def plot_config(self):
+        """
+        Plot configuration from visual nodes
+        """
+        return {
+            'main_plot': {
+{% for plot in plots %}
+                '{{ plot.name }}': {'color': '{{ plot.color }}'},
+{% endfor %}
+            },
+            'subplots': {
+                # Additional subplots can be added here
+            }
+        }
+{% endif %}

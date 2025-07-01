@@ -1,0 +1,256 @@
+{
+  "graph": {
+    "layout_direction": 0,
+    "acyclic": true,
+    "pipe_collision": false,
+    "pipe_slicing": true
+  },
+  "nodes": {
+    "market_data_1": {
+      "name": "BTC Market Data",
+      "color": [70, 130, 180],
+      "border_color": [50, 110, 160],
+      "text_color": [255, 255, 255],
+      "type_": "frequi.nodes.MarketDataNode.MarketDataNode",
+      "selected": false,
+      "disabled": false,
+      "visible": true,
+      "width": 120,
+      "height": 80,
+      "pos": [50, 100],
+      "port_deletion_allowed": false,
+      "subgraph_session": {},
+      "inputs": {},
+      "outputs": {
+        "candles": {
+          "type_": "out",
+          "multi_connection": true,
+          "connected_ports": [
+            ["rsi_indicator", "candles"]
+          ]
+        }
+      },
+      "parameters": {
+        "pair": "BTC/USDT",
+        "timeframe": "5m",
+        "lookback": 1000
+      }
+    },
+    "rsi_indicator": {
+      "name": "RSI",
+      "color": [255, 165, 0],
+      "border_color": [235, 145, 0],
+      "text_color": [255, 255, 255],
+      "type_": "frequi.nodes.IndicatorNode.IndicatorNode",
+      "selected": false,
+      "disabled": false,
+      "visible": true,
+      "width": 120,
+      "height": 80,
+      "pos": [250, 100],
+      "port_deletion_allowed": false,
+      "subgraph_session": {},
+      "inputs": {
+        "candles": {
+          "type_": "in",
+          "multi_connection": false,
+          "connected_ports": [
+            ["market_data_1", "candles"]
+          ]
+        }
+      },
+      "outputs": {
+        "values": {
+          "type_": "out",
+          "multi_connection": true,
+          "connected_ports": [
+            ["oversold_logic", "condition1"],
+            ["overbought_logic", "condition1"]
+          ]
+        }
+      },
+      "parameters": {
+        "indicator_type": "RSI",
+        "period": 14,
+        "source": "close"
+      }
+    },
+    "oversold_logic": {
+      "name": "RSI < 30",
+      "color": [220, 20, 60],
+      "border_color": [200, 0, 40],
+      "text_color": [255, 255, 255],
+      "type_": "frequi.nodes.LogicNode.LogicNode",
+      "selected": false,
+      "disabled": false,
+      "visible": true,
+      "width": 120,
+      "height": 80,
+      "pos": [450, 50],
+      "port_deletion_allowed": false,
+      "subgraph_session": {},
+      "inputs": {
+        "condition1": {
+          "type_": "in",
+          "multi_connection": false,
+          "connected_ports": [
+            ["rsi_indicator", "values"]
+          ]
+        },
+        "condition2": {
+          "type_": "in",
+          "multi_connection": false,
+          "connected_ports": []
+        }
+      },
+      "outputs": {
+        "result": {
+          "type_": "out",
+          "multi_connection": true,
+          "connected_ports": [
+            ["buy_signal", "signal"]
+          ]
+        }
+      },
+      "parameters": {
+        "operation": "AND",
+        "threshold": 30.0
+      }
+    },
+    "overbought_logic": {
+      "name": "RSI > 70",
+      "color": [220, 20, 60],
+      "border_color": [200, 0, 40],
+      "text_color": [255, 255, 255],
+      "type_": "frequi.nodes.LogicNode.LogicNode",
+      "selected": false,
+      "disabled": false,
+      "visible": true,
+      "width": 120,
+      "height": 80,
+      "pos": [450, 150],
+      "port_deletion_allowed": false,
+      "subgraph_session": {},
+      "inputs": {
+        "condition1": {
+          "type_": "in",
+          "multi_connection": false,
+          "connected_ports": [
+            ["rsi_indicator", "values"]
+          ]
+        },
+        "condition2": {
+          "type_": "in",
+          "multi_connection": false,
+          "connected_ports": []
+        }
+      },
+      "outputs": {
+        "result": {
+          "type_": "out",
+          "multi_connection": true,
+          "connected_ports": [
+            ["sell_signal", "signal"]
+          ]
+        }
+      },
+      "parameters": {
+        "operation": "AND",
+        "threshold": 70.0
+      }
+    },
+    "buy_signal": {
+      "name": "Buy Signal",
+      "color": [0, 255, 0],
+      "border_color": [0, 235, 0],
+      "text_color": [255, 255, 255],
+      "type_": "frequi.nodes.EnterNode.EnterNode",
+      "selected": false,
+      "disabled": false,
+      "visible": true,
+      "width": 120,
+      "height": 80,
+      "pos": [650, 50],
+      "port_deletion_allowed": false,
+      "subgraph_session": {},
+      "inputs": {
+        "signal": {
+          "type_": "in",
+          "multi_connection": false,
+          "connected_ports": [
+            ["oversold_logic", "result"]
+          ]
+        }
+      },
+      "outputs": {
+        "entry": {
+          "type_": "out",
+          "multi_connection": true,
+          "connected_ports": []
+        }
+      },
+      "parameters": {
+        "side": "long",
+        "position_size": 0.95
+      }
+    },
+    "sell_signal": {
+      "name": "Sell Signal",
+      "color": [255, 0, 0],
+      "border_color": [235, 0, 0],
+      "text_color": [255, 255, 255],
+      "type_": "frequi.nodes.ExitNode.ExitNode",
+      "selected": false,
+      "disabled": false,
+      "visible": true,
+      "width": 120,
+      "height": 80,
+      "pos": [650, 150],
+      "port_deletion_allowed": false,
+      "subgraph_session": {},
+      "inputs": {
+        "signal": {
+          "type_": "in",
+          "multi_connection": false,
+          "connected_ports": [
+            ["overbought_logic", "result"]
+          ]
+        }
+      },
+      "outputs": {
+        "exit": {
+          "type_": "out",
+          "multi_connection": true,
+          "connected_ports": []
+        }
+      },
+      "parameters": {
+        "side": "long",
+        "stop_loss": 3.0,
+        "take_profit": 8.0
+      }
+    }
+  },
+  "connections": [
+    {
+      "in": ["rsi_indicator", "candles"],
+      "out": ["market_data_1", "candles"]
+    },
+    {
+      "in": ["oversold_logic", "condition1"],
+      "out": ["rsi_indicator", "values"]
+    },
+    {
+      "in": ["overbought_logic", "condition1"],
+      "out": ["rsi_indicator", "values"]
+    },
+    {
+      "in": ["buy_signal", "signal"],
+      "out": ["oversold_logic", "result"]
+    },
+    {
+      "in": ["sell_signal", "signal"],
+      "out": ["overbought_logic", "result"]
+    }
+  ]
+} 
