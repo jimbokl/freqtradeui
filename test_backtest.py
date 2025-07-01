@@ -171,7 +171,7 @@ def test_minimal_backtest():
             '--config', str(config_file),
             '--strategy', 'GeneratedStrategy',
             '--user-data-dir', 'user_data',
-            '--timerange', '20240101-20240107',  # Неделя для быстрого теста
+            '--timerange', '20250410-20250420',  # Период, когда есть данные
             '--cache', 'none'
         ]
         
