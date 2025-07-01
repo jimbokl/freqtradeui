@@ -1,4 +1,3 @@
-
 # Generated strategy from RDP visual builder
 # PRAGMA pylint: disable=missing-docstring, invalid-name, pointless-string-statement
 
@@ -35,7 +34,7 @@ class GeneratedStrategy(IStrategy):
     stoploss = -0.10
     
     # Optimal timeframe for the strategy
-    timeframe = '5m'
+    timeframe = '1h'
     
     # Can this strategy go short?
     can_short: bool = False
@@ -48,7 +47,11 @@ class GeneratedStrategy(IStrategy):
     # Number of candles the strategy requires before producing valid signals
     startup_candle_count: int = 30
     
-
+    def __init__(self, config: dict = None):
+        """Инициализация стратегии с конфигурацией"""
+        if config is None:
+            config = {}
+        super().__init__(config)
 
     def populate_indicators(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
         """
