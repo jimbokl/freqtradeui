@@ -3,15 +3,10 @@
 
 
 import pandas as pd
-
 import numpy as np
-
 from freqtrade.strategy import IStrategy, merge_informative_pair
-
 from pandas import DataFrame
-
 import talib.abstract as ta
-
 import freqtrade.vendor.qtpylib.indicators as qtpylib
 
 
@@ -34,7 +29,7 @@ class GeneratedStrategy(IStrategy):
     stoploss = -0.10
     
     # Optimal timeframe for the strategy
-    timeframe = '1h'
+    timeframe = '1h'  # Используем 1h так как у нас есть данные для этого timeframe
     
     # Can this strategy go short?
     can_short: bool = False
@@ -58,11 +53,11 @@ class GeneratedStrategy(IStrategy):
         Adds several different TA indicators to the given DataFrame
         """
 
-        dataframe['indicator_0x146700640'] = ta.EMA(dataframe['close'], timeperiod=12)
+        dataframe['indicator_0x1284fd660'] = ta.EMA(dataframe['close'], timeperiod=12)
 
-        dataframe['indicator_0x146700370'] = ta.EMA(dataframe['close'], timeperiod=26)
+        dataframe['indicator_0x1284fd780'] = ta.EMA(dataframe['close'], timeperiod=26)
 
-        dataframe['math_0x146701870'] = dataframe['indicator_0x146700640'] - dataframe['indicator_0x146700370']
+        dataframe['math_0x1284fd9f0'] = dataframe['indicator_0x1284fd660'] - dataframe['indicator_0x1284fd780']
 
         
         return dataframe
@@ -76,7 +71,7 @@ class GeneratedStrategy(IStrategy):
         dataframe['enter_short'] = 0
         
 
-        dataframe.loc[(dataframe['math_0x146701870'] > 0), 'enter_long'] = 1
+        dataframe.loc[(dataframe['math_0x1284fd9f0'] > 0), 'enter_long'] = 1
 
         
         return dataframe
@@ -90,7 +85,7 @@ class GeneratedStrategy(IStrategy):
         dataframe['exit_short'] = 0
         
 
-        dataframe.loc[(dataframe['math_0x146701870'] < 0), 'exit_long'] = 1
+        dataframe.loc[(dataframe['math_0x1284fd9f0'] < 0), 'exit_long'] = 1
 
         
         return dataframe
