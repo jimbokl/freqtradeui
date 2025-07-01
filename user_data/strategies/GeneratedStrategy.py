@@ -3,10 +3,15 @@
 
 
 import pandas as pd
+
 import numpy as np
+
 from freqtrade.strategy import IStrategy, merge_informative_pair
+
 from pandas import DataFrame
+
 import talib.abstract as ta
+
 import freqtrade.vendor.qtpylib.indicators as qtpylib
 
 
@@ -53,11 +58,11 @@ class GeneratedStrategy(IStrategy):
         Adds several different TA indicators to the given DataFrame
         """
 
-        dataframe['indicator_0x1284fd660'] = ta.EMA(dataframe['close'], timeperiod=12)
+        dataframe['indicator_0x16a3000a0'] = ta.EMA(dataframe['close'], timeperiod=12)
 
-        dataframe['indicator_0x1284fd780'] = ta.EMA(dataframe['close'], timeperiod=26)
+        dataframe['indicator_0x16a301810'] = ta.EMA(dataframe['close'], timeperiod=26)
 
-        dataframe['math_0x1284fd9f0'] = dataframe['indicator_0x1284fd660'] - dataframe['indicator_0x1284fd780']
+        dataframe['math_0x16a301a80'] = dataframe['indicator_0x16a3000a0'] - dataframe['indicator_0x16a301810']
 
         
         return dataframe
@@ -71,7 +76,7 @@ class GeneratedStrategy(IStrategy):
         dataframe['enter_short'] = 0
         
 
-        dataframe.loc[(dataframe['math_0x1284fd9f0'] > 0), 'enter_long'] = 1
+        dataframe.loc[(dataframe['math_0x16a301a80'] > 0), 'enter_long'] = 1
 
         
         return dataframe
@@ -85,7 +90,7 @@ class GeneratedStrategy(IStrategy):
         dataframe['exit_short'] = 0
         
 
-        dataframe.loc[(dataframe['math_0x1284fd9f0'] < 0), 'exit_long'] = 1
+        dataframe.loc[(dataframe['math_0x16a301a80'] < 0), 'exit_long'] = 1
 
         
         return dataframe

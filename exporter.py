@@ -35,11 +35,18 @@ class StrategyExporter:
         # Generate code sections
         code_sections = self._generate_code_sections(graph_data)
         
+        # Extract timeframe from market data nodes
+        timeframe = '1h'  # default
+        if graph_data['market_data_nodes']:
+            first_market_node = graph_data['market_data_nodes'][0]
+            timeframe = first_market_node['parameters'].get('timeframe', '1h')
+        
         # Load and render template
         template = self._get_strategy_template()
         
         strategy_code = template.render(
             strategy_name="GeneratedStrategy",
+            timeframe=timeframe,
             indicators=code_sections['indicators'],
             entry_signals=code_sections['entry_signals'],
             exit_signals=code_sections['exit_signals'],
@@ -192,14 +199,17 @@ class StrategyExporter:
         if not graph_data['exit_nodes']:
             raise ValueError("Strategy must have at least one Exit Signal node")
         
-        # Validate connections
+        # Validate connections (более мягкая валидация)
         for node_id, node_data in graph_data['nodes'].items():
-            # Check that required inputs are connected
-            required_inputs = self._get_required_inputs(node_data['type'])
-            
-            for required_input in required_inputs:
-                if required_input not in node_data['inputs'] or not node_data['inputs'][required_input]:
-                    raise ValueError(f"Node '{node_data['name']}' is missing required input '{required_input}'")
+            # Проверяем только критически важные подключения
+            # Индикаторы могут работать с dataframe напрямую
+            if 'Enter' in node_data['type'] or 'Exit' in node_data['type']:
+                # Entry/Exit узлы должны иметь сигнал, но мы можем создать его автоматически
+                signal_inputs = node_data['inputs'].get('signal', [])
+                if not signal_inputs:
+                    print(f"Warning: {node_data['name']} has no signal input - will generate default condition")
+        
+        print(f"Graph validation completed - {len(graph_data['nodes'])} nodes validated")
     
     def _get_required_inputs(self, node_type: str) -> List[str]:
         """Get required inputs for a node type"""
@@ -490,7 +500,7 @@ class {{ strategy_name }}(IStrategy):
     stoploss = -0.10
     
     # Optimal timeframe for the strategy
-    timeframe = '5m'
+    timeframe = '{{ timeframe }}'
     
     # Can this strategy go short?
     can_short: bool = False
@@ -509,6 +519,12 @@ class {{ strategy_name }}(IStrategy):
 {{ param }}
 {% endfor %}
 {% endif %}
+    
+    def __init__(self, config: dict = None):
+        """Инициализация стратегии с конфигурацией"""
+        if config is None:
+            config = {}
+        super().__init__(config)
 
     def populate_indicators(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
         """

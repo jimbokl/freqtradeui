@@ -456,7 +456,8 @@ class MainWindow(QMainWindow):
             market_node = self.graph.create_node('frequi.nodes.MarketDataNode.MarketDataNode')
             market_node.set_pos(100, 100)
             market_node.set_parameter('pair', 'BTC/USDT')
-            market_node.set_parameter('timeframe', '1h')
+            market_node.set_parameter('timeframe', '1h')  # Используем 1h так как есть данные
+            market_node.set_parameter('exchange', 'binance')
             
             # Create EMA fast indicator
             ema_fast = self.graph.create_node('frequi.nodes.IndicatorNode.IndicatorNode') 
@@ -464,6 +465,7 @@ class MainWindow(QMainWindow):
             ema_fast.set_name('EMA Fast')
             ema_fast.set_parameter('indicator_type', 'EMA')
             ema_fast.set_parameter('period', 12)
+            ema_fast.set_parameter('source', 'close')
             
             # Create EMA slow indicator
             ema_slow = self.graph.create_node('frequi.nodes.IndicatorNode.IndicatorNode')
@@ -471,22 +473,31 @@ class MainWindow(QMainWindow):
             ema_slow.set_name('EMA Slow')
             ema_slow.set_parameter('indicator_type', 'EMA')
             ema_slow.set_parameter('period', 26)
+            ema_slow.set_parameter('source', 'close')
             
             # Create crossover logic
             crossover = self.graph.create_node('frequi.nodes.MathNode.MathNode')
             crossover.set_pos(500, 100)
             crossover.set_name('Crossover')
             crossover.set_parameter('operation', 'subtract')
+            crossover.set_parameter('comparison', 'greater_than')
+            crossover.set_parameter('threshold', 0.0)
             
             # Create entry signal
             entry = self.graph.create_node('frequi.nodes.EnterNode.EnterNode')
             entry.set_pos(700, 50)
             entry.set_name('Long Entry')
+            entry.set_parameter('signal_type', 'long')
+            entry.set_parameter('risk_management', True)
+            entry.set_parameter('max_stake_amount', 100.0)
             
             # Create exit signal
             exit_node = self.graph.create_node('frequi.nodes.ExitNode.ExitNode')
             exit_node.set_pos(700, 150)
             exit_node.set_name('Long Exit')
+            exit_node.set_parameter('signal_type', 'long')
+            exit_node.set_parameter('use_exit_signal', True)
+            exit_node.set_parameter('exit_profit_only', False)
             
             # Connect nodes (EMA indicators to market data)
             try:
@@ -524,11 +535,11 @@ class MainWindow(QMainWindow):
                 print(f"Warning: Could not connect nodes automatically: {e}")
             
             # Show success message
-            self.statusBar().showMessage("Created simple EMA crossover strategy - ready to backtest!", 5000)
+            self.statusBar().showMessage("Создана стратегия EMA кроссовер с правильными параметрами - готова к бэктесту!", 5000)
             
         except Exception as e:
             print(f"Failed to create simple test strategy: {e}")
-            self.statusBar().showMessage("Welcome to RDP! Create nodes by clicking the palette on the left.", 3000)
+            self.statusBar().showMessage("Добро пожаловать в RDP! Создавайте узлы из палитры слева.", 3000)
     
     def load_example_strategy(self, filename):
         """Load an example strategy by filename"""

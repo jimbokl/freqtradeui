@@ -32,7 +32,7 @@ class {{ strategy_name }}(IStrategy):
     INTERFACE_VERSION = 3
     
     # Basic strategy settings
-    timeframe = '1h'
+    timeframe = '{{ timeframe }}'
     
     # ROI table
     minimal_roi = {
@@ -48,10 +48,27 @@ class {{ strategy_name }}(IStrategy):
     # Trailing stop
     trailing_stop = False
     
+    # Can this strategy go short?
+    can_short: bool = False
+    
+    # Number of candles the strategy requires before producing valid signals
+    startup_candle_count: int = 30
+    
+    # These values can be overridden in the config
+    use_exit_signal = True
+    exit_profit_only = False
+    ignore_roi_if_entry_signal = False
+    
     # Hyperopt parameters
 {% for param in hyperopt_params %}
     {{ param }}
 {% endfor %}
+    
+    def __init__(self, config: dict = None):
+        """Инициализация стратегии с конфигурацией"""
+        if config is None:
+            config = {}
+        super().__init__(config)
     
     def populate_indicators(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
         """
@@ -70,6 +87,9 @@ class {{ strategy_name }}(IStrategy):
         """
         Generate entry signals from visual nodes
         """
+        # Initialize entry columns
+        dataframe['enter_long'] = 0
+        dataframe['enter_short'] = 0
         
 {% for entry in entry_signals %}
         # {{ entry.comment if entry.comment else 'Generated entry condition' }}
@@ -83,6 +103,9 @@ class {{ strategy_name }}(IStrategy):
         """
         Generate exit signals from visual nodes
         """
+        # Initialize exit columns
+        dataframe['exit_long'] = 0
+        dataframe['exit_short'] = 0
         
 {% for exit in exit_signals %}
         # {{ exit.comment if exit.comment else 'Generated exit condition' }}
