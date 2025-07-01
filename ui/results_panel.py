@@ -365,6 +365,30 @@ class ResultsPanel(QWidget):
             self.trades_widget.populate_trades(trades_data)
             self.trades_widget.update_stats(trade_stats)
     
+    def display_backtest_results(self, results):
+        """Display backtest results - alias for update_results"""
+        print(f"📊 Отображаю результаты бэктеста в GUI")
+        print(f"📊 Ключи результатов: {list(results.keys()) if results else 'None'}")
+        
+        if results and results.get('success', False):
+            self.log_message("Бэктест успешно завершен!", "SUCCESS")
+            
+            # Обновляем результаты
+            self.update_results(results)
+            
+            # Переключаемся на вкладку с equity curve
+            self.tab_widget.setCurrentIndex(0)
+            
+            # Логируем статистику
+            stats = results.get('stats', {})
+            if stats:
+                self.log_message(f"Общая доходность: {stats.get('total_return', 'N/A')}", "INFO")
+                self.log_message(f"Количество сделок: {stats.get('total_trades', 'N/A')}", "INFO")
+                self.log_message(f"Прибыльных сделок: {stats.get('profitable_trades', 'N/A')}", "INFO")
+        else:
+            error_msg = results.get('error', 'Неизвестная ошибка') if results else 'Нет результатов'
+            self.log_message(f"Ошибка бэктеста: {error_msg}", "ERROR")
+
     def log_message(self, message, level="INFO"):
         """Add a log message"""
         self.logs_widget.append_log(message, level)
