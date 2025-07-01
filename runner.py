@@ -33,6 +33,7 @@ class FreqtradeRunner:
             "stake_amount": 100,
             "tradable_balance_ratio": 0.99,
             "fiat_display_currency": "USD",
+            "timeframe": "1h",
             "dry_run": True,
             "dry_run_wallet": 1000,
             "cancel_open_orders_on_exit": False,
@@ -140,6 +141,12 @@ class FreqtradeRunner:
         # Create config
         config_file = self.create_config(config_overrides)
         
+        # Determine timerange if not provided
+        if not timerange:
+            # Use a reasonable default timerange based on available data
+            # For recent data, use last month
+            timerange = "20250401-20250630"  # Use date range instead of indices
+        
         # Build command
         cmd = [
             "freqtrade", "backtesting",
@@ -147,14 +154,15 @@ class FreqtradeRunner:
             "--strategy", strategy_name,
             "--user-data-dir", str(self.user_data_dir),
             "--export", "trades",
-            "--export-filename", f"{self.temp_dir}/backtest_results.json"
+            "--export-filename", f"{self.temp_dir}/backtest_results.json",
+            "--timerange", timerange,
+            "--cache", "none"  # Disable cache to avoid issues
         ]
-        
-        if timerange:
-            cmd.extend(["--timerange", timerange])
         
         # Run command
         try:
+            print(f"🚀 Запускаю бэктест: {' '.join(cmd)}")
+            
             result = subprocess.run(
                 cmd, 
                 capture_output=True, 
@@ -164,15 +172,20 @@ class FreqtradeRunner:
             )
             
             if result.returncode != 0:
-                raise RuntimeError(f"Backtest failed: {result.stderr}")
+                # Try to provide more helpful error message
+                error_msg = result.stderr
+                if "No data found" in error_msg:
+                    error_msg += f"\n\n💡 Попробуйте:\n1. Загрузить данные: freqtrade download-data --config {config_file} --pairs BTC/USDT --timeframe 1h --days 30 --exchange binance\n2. Или используйте другой временной диапазон"
+                
+                raise RuntimeError(f"Backtest failed: {error_msg}")
             
             # Parse results
             return self._parse_backtest_results(result.stdout, result.stderr)
             
         except subprocess.TimeoutExpired:
-            raise RuntimeError("Backtest timed out after 5 minutes")
+            raise RuntimeError("Бэктест превысил время ожидания (5 минут)")
         except Exception as e:
-            raise RuntimeError(f"Failed to run backtest: {str(e)}")
+            raise RuntimeError(f"Ошибка запуска бэктеста: {str(e)}")
     
     def run_hyperopt(self, strategy_code: str, strategy_name: str = "GeneratedStrategy",
                      config_overrides: Dict = None, epochs: int = 100) -> Dict[str, Any]:
